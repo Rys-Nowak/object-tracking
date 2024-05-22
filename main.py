@@ -22,14 +22,19 @@ if __name__ == '__main__':
     time1 = time.time()
 
     gran1, granulated_image1 = granulation.spatio_color_granules(frames[0], 50)
+    print("Spatio color granules: done")
     gran2, granulated_image2 = granulation.spatio_temporal_granules(frames[0], frames[1:], 100)
+    print("Spatio temporal granules: done")
+    gran3, granulated_image3 = granulation.color_neighborhood_granules(gran2, frames[0], 50)
+    print("Color neighborhood granules: done")
 
     time2 = time.time()
 
-    print(time2-time1)
+    print("Elapsed time:", time2-time1)
 
     plt.imsave('spatio_color_granules.jpg', granulated_image1)
     plt.imsave('spatio_temporal_granules.jpg', granulated_image2)
+    plt.imsave('color_neighborhood_granules.jpg', granulated_image3)
 
 
 

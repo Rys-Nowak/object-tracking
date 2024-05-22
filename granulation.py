@@ -15,13 +15,14 @@ def spatio_color_granules(img: np.ndarray, threshold: int) -> Tuple[list, np.nda
 	for i in range(height):
 		for j in range(width):
 			if not visited[i, j]:
-				granules_out.append(grow_region(i, j, img, img, visited, threshold, granulated_image))
+				granules_out.append(_grow_region(i, j, img, img, visited, threshold, granulated_image))
 
 	return granules_out, granulated_image
 
 
 def spatio_temporal_granules(current_frame: np.ndarray,
                              previous_frames: list[np.ndarray], threshold: int) -> Tuple[list, np.ndarray]:
+	# TODO: calculate distance between each one of p previous frames and not the median
 	height, width, _ = current_frame.shape
 	granulated_image = np.zeros_like(current_frame)
 
@@ -34,17 +35,40 @@ def spatio_temporal_granules(current_frame: np.ndarray,
 	for i in range(height):
 		for j in range(width):
 			if not visited[i, j]:
-				granules_out.append(grow_region(i, j, current_frame, median_diff, visited, threshold, granulated_image))
+				granules_out.append(_grow_region(i, j, current_frame, median_diff, visited, threshold, granulated_image))
+
+	granules_out = granules_out[1:]
 
 	return granules_out, granulated_image
 
 
-def color_neighborhood_granules():
-	pass
+def color_neighborhood_granules(granules: list[list[tuple[int, int]]],
+                                image: np.ndarray, threshold: int) -> Tuple[list, np.ndarray]:
+	granules_out = []
+	granulated_image = np.zeros_like(image)
+
+	for granule in granules:
+		values = np.array([image[x, y] for x, y in granule])
+		granule = np.array(granule)
+
+		diffs = values[:, np.newaxis, :] - values[np.newaxis, :, :]
+		distances = np.linalg.norm(diffs, axis=2)
+
+		for row in distances:
+			granules_out.append(granule[np.where(row < threshold)])
+
+	# TODO: find a faster way
+	for granule in granules_out:
+		a, b = granule[0]
+		color = image[a, b, :]
+		for x, y in granule:
+			granulated_image[x, y] = color
+
+	return granules_out, granulated_image
 
 
-def grow_region(x: int, y: int, image1: np.ndarray, image2: np.ndarray,
-                visited: np.ndarray, thr: int, granulated_image: np.ndarray) -> list[tuple[int, int]]:
+def _grow_region(x: int, y: int, image1: np.ndarray, image2: np.ndarray,
+                 visited: np.ndarray, thr: int, granulated_image: np.ndarray) -> list[tuple[int, int]]:
 	neighbors = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 	height, width, _ = image1.shape
 
