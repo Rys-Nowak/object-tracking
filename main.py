@@ -4,6 +4,7 @@ import os
 import granulation
 import cv2
 import time
+import object_model
 
 if __name__ == '__main__':
 
@@ -16,24 +17,26 @@ if __name__ == '__main__':
         im_resized = cv2.resize(im, (0, 0), None, 0.5, 0.5)
         frames.append(im_resized)
 
+    frames = frames[::-1]
+
     # im1 = cv2.imread('data/lena.png')
     # im1 = cv2.cvtColor(im1, cv2.COLOR_BGR2RGB)
-    #
+    
     time1 = time.time()
-    #
-    # gran1, granulated_image1 = granulation.spatio_color_granules(frames[0], 50)
-    # print("Spatio color granules: done")
+    
+    gran1, granulated_image1 = granulation.spatio_color_granules(frames[0], 50)
+    print("Spatio color granules: done")
     gran2, granulated_image2 = granulation.spatio_temporal_granules(frames[0], frames[0:], 30)
-    # print("Spatio temporal granules: done")
+    print("Spatio temporal granules: done")
     gran3, granulated_image3 = granulation.color_neighborhood_granules(gran2, frames[0], 50)
-    # print("Color neighborhood granules: done")
-    #
+    print("Color neighborhood granules: done")
+    
     time2 = time.time()
     # print(gran2)
-    #
+    
     print("Elapsed time:", time2-time1)
-    #
-    # plt.imsave('spatio_color_granules.jpg', granulated_image1)
+    
+    plt.imsave('spatio_color_granules.jpg', granulated_image1)
     plt.imsave('spatio_temporal_granules.jpg', granulated_image2)
     plt.imsave('color_neighborhood_granules.jpg', granulated_image3)
 
@@ -52,5 +55,10 @@ if __name__ == '__main__':
     # plt.imshow(diffs[4])
     # plt.show()
 
+    time1 = time.time()
+    model_bottom, model_top = object_model.create_initial_object_model(frames[0], frames[0:])
+    print("Elapsed time object model:", time.time()-time1)
 
-
+    plt.imsave("top_object_model_estimation.jpg", model_top)
+    plt.imsave("bottom_object_model_estimation.jpg", model_bottom)
+    
