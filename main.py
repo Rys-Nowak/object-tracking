@@ -8,13 +8,13 @@ import object_model
 
 if __name__ == '__main__':
 
-    path = 'data/GOT-10k_Test_000063'
+    path = 'data/pedestrian/input'
     frames = []
 
-    for i in range(1, 10):
-        im = cv2.imread(os.path.join(path, f'{i:08d}.jpg'))
+    for i in range(970, 975):
+        im = cv2.imread(os.path.join(path, f'in{i:06d}.jpg'))
         im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-        im_resized = cv2.resize(im, (0, 0), None, 0.5, 0.5)
+        im_resized = cv2.resize(im, (0, 0), None, 1, 1)
         frames.append(im_resized)
 
     frames = frames[::-1]
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     # plt.show()
 
     time1 = time.time()
-    model_bottom, model_top = object_model.create_initial_object_model(frames[0], frames[0:])
+    model_bottom, model_top = object_model.create_initial_object_model(frames[0], frames[1:])
     print("Elapsed time object model:", time.time()-time1)
 
     plt.imsave("top_object_model_estimation.jpg", model_top)

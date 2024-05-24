@@ -88,7 +88,7 @@ def color_neighborhood_granules(granules: list[list[tuple[int, int]]],
 		for x, y in granule:
 			granulated_image[x, y] = color
 
-	return [(xy[0], xy[1]) for xy in granule for granule in granules_out], granulated_image
+	return [[(xy[0], xy[1]) for xy in granule] for granule in granules_out], granulated_image
 
 
 def _grow_region(x: int, y: int, image1: np.ndarray, image2: np.ndarray,
