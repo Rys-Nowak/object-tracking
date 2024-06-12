@@ -1,8 +1,6 @@
 from typing import Tuple
-
 import cv2
 import numpy as np
-from skimage.segmentation import flood_fill
 
 
 def region_growing(diff_frame, threshold):
@@ -32,25 +30,55 @@ def region_growing(diff_frame, threshold):
 	return segmented_image
 
 
-# def spatio_color_granules(image: np.ndarray, thr: int) -> Tuple[list, np.ndarray]:
-# 	height, width, _ = image.shape
-# 	granulated_image = np.zeros((height, width), dtype=np.int32)
-# 	region_label = 1
-# 	granules_list = []
-#
-# 	for y in range(height):
-# 		for x in range(width):
-# 			if granulated_image[y, x] == 0:
-# 				new_region = region_growing_color(image, x, y, thr)
-# 				if np.count_nonzero(new_region) > 0:
-# 					granulated_image[new_region == 1] = region_label
-# 					region_mask = (new_region == 1)
-# 					mean_value = np.mean(image[region_mask])
-# 					variance_value = np.var(image[region_mask])
-# 					granules_list.append((region_label, mean_value, variance_value))
-# 					region_label += 1
-#
-# 	return granules_list, granulated_image
+def region_growing_color(image, x, y, Thr):
+	height, width, _ = image.shape
+	segmented_image = np.zeros((height, width), dtype=np.int32)
+	region_label = 1
+	seed_color = image[y, x]
+
+	def get_neighbors(y, x):
+		neighbors = []
+		for ny in range(max(0, y - 1), min(height, y + 2)):
+			for nx in range(max(0, x - 1), min(width, x + 2)):
+				if ny != y or nx != x:
+					neighbors.append((ny, nx))
+		return neighbors
+
+	stack = [(y, x)]
+	while stack:
+		cy, cx = stack.pop()
+		if segmented_image[cy, cx] == 0:
+			current_color = image[cy, cx]
+			color_diff = np.linalg.norm(current_color - seed_color)
+			if color_diff < Thr:
+				segmented_image[cy, cx] = region_label
+				stack.extend(get_neighbors(cy, cx))
+
+	return segmented_image
+
+
+def spatio_color_granules(image: np.ndarray, Thr: int) -> Tuple[list, np.ndarray]:
+	height, width, _ = image.shape
+	granulated_image = np.zeros((height, width), dtype=np.int32)
+	region_label = 1
+	granules_list = []
+
+	for y in range(height):
+		for x in range(width):
+			if granulated_image[y, x] == 0:
+				new_region = region_growing_color(image, x, y, Thr)
+				if np.count_nonzero(new_region) > 0:
+					granulated_image[new_region == 1] = region_label
+					region_mask = (new_region == 1)
+					mean_value = np.mean(image[region_mask])
+					variance_value = np.var(image[region_mask])
+					granules_list.append((region_label, mean_value, variance_value))
+					region_label += 1
+
+	granulated_image_normalized = cv2.normalize(granulated_image, None, 0, 255, cv2.NORM_MINMAX)
+	granulated_image_uint8 = granulated_image_normalized.astype(np.uint8)
+
+	return granules_list, granulated_image_uint8
 
 
 def spatio_temporal_granules(current_frame: np.ndarray,
