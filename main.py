@@ -29,16 +29,17 @@ if __name__ == '__main__':
 
     p = 5
     for i in range(500 - p):
-        gran1, granulated_image1 = granulation.spatio_color_granules(frames_rgb[i], 50)
+        # gran1, granulated_image1 = granulation.spatio_color_granules(frames_rgb[i], 50)
         # print(gran1)
         gran2, granulated_image2 = granulation.spatio_temporal_granules(frames_rgb[i],
                                                                         frames_rgb[i:i+p], 50)
-        # print(gran2)
+        # print(granulated_image2)
+        # print(len(gran2))
 
-        # gran3, granulated_image3 = granulation.color_neighborhood_granules(gran2, frames_depth[i], 100)
-        cv2.imshow("granulated image1", granulated_image1)
+        granulated_image3 = granulation.color_neighborhood_granules(gran2, granulated_image2, frames_depth[i], 70)
+        # cv2.imshow("granulated image1", granulated_image1)
         cv2.imshow("granulated image2", granulated_image2)
-        # cv2.imshow("granulated image3", granulated_image3)
+        cv2.imshow("granulated image3", granulated_image3)
         cv2.waitKey(1)
 
     # plt.imsave('spatio_color_granules.jpg', granulated_image1)

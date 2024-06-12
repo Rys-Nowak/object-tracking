@@ -125,41 +125,25 @@ def spatio_temporal_granules(current_frame: np.ndarray,
 	return granules_list, granulated_image_uint8
 
 
-# def color_neighborhood_granules(granules: list[list[tuple[int, int]]],
-#                                 image: np.ndarray, threshold: int) -> Tuple[list, np.ndarray]:
-# 	granules_out = []
-# 	granulated_image = np.zeros_like(image)
-#
-# 	for granule in granules:
-# 		values = np.array([image[x, y] for x, y in granule])
-# 		granule = np.array(granule)
-#
-# 		diffs = values[:, np.newaxis] - values[np.newaxis, :]
-# 		distances = np.linalg.norm(diffs, axis=1)
-#
-# 		granules_out.append(granule[np.where(distances < threshold)])
-#
-# 	# for granule in granules:
-# 	# 	values = np.array([image[x, y] for x, y in granule])
-# 	# 	granule = np.array(granule)
-# 	#
-# 	# 	diffs = values[:, np.newaxis, :] - values[np.newaxis, :, :]
-# 	# 	distances = np.linalg.norm(diffs, axis=2)
-# 	#
-# 	# 	for row in distances:
-# 	# 		granules_out.append(granule[np.where(row < threshold)])
-#
-# 	print("granules_out", granules_out)
-#
-# 	# TODO: find a faster way
-# 	# if len(granules_out) == 0:
-# 	# 	return [], granulated_image
-# 	for granule in granules_out:
-# 		if not granule.any():
-# 			continue
-# 		a, b = granule[0]
-# 		color = image[a, b]
-# 		for x, y in granule:
-# 			granulated_image[x, y] = color
-#
-# 	return [[(xy[0], xy[1]) for xy in granule] for granule in granules_out], granulated_image
+def color_neighborhood_granules(granules: list,
+                                image: np.ndarray, image_depth: np.ndarray, threshold: int) -> np.ndarray:
+	region_label = 1
+	granulated_image = np.zeros(image.shape[:2])
+	image = image[:, :, np.newaxis]
+	image_rgb_d = np.dstack([image, image_depth])
+	for i in range(len(granules)):
+		ys, xs = np.where(np.all(image == i, axis=2))
+		if ys.any() and xs.any():
+			first_point = image_rgb_d[ys[0], xs[0]]
+			if first_point[0] == 0:
+				continue
+		for y_ in ys:
+			for x_ in xs:
+				if np.linalg.norm(image_rgb_d[y_, x_] - first_point) < threshold:
+					granulated_image[y_, x_] = region_label
+		region_label += 1
+
+	granulated_image_normalized = cv2.normalize(granulated_image, None, 0, 255, cv2.NORM_MINMAX)
+	granulated_image_uint8 = granulated_image_normalized.astype(np.uint8)
+
+	return granulated_image_uint8
