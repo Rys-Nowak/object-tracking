@@ -17,30 +17,37 @@ if __name__ == '__main__':
         im_rgb = cv2.imread(os.path.join(path, f'rgb/seq0_{i:04d}_{sequence_num}.ppm'))
         im_rgb = cv2.cvtColor(im_rgb, cv2.COLOR_BGR2RGB)
         im_rgb = cv2.rotate(im_rgb, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        im_rgb = cv2.resize(im_rgb, (0, 0), None, 0.3, 0.3)
+        im_rgb = cv2.resize(im_rgb, (0, 0), None, 0.5, 0.5)
         frames_rgb.append(im_rgb)
 
         im_depth = cv2.imread(os.path.join(path, f'depth/seq0_{i:04d}_{sequence_num}.pgm'), cv2.IMREAD_GRAYSCALE)
         im_depth = cv2.rotate(im_depth, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        im_depth = cv2.resize(im_depth, (0, 0), None, 0.3, 0.3)
+        im_depth = cv2.resize(im_depth, (0, 0), None, 0.5, 0.5)
         frames_depth.append(im_depth)
 
     # frames_rgb = frames_rgb[::-1]
 
     p = 5
-    for i in range(500 - p):
-        # gran1, granulated_image1 = granulation.spatio_color_granules(frames_rgb[i], 50)
+    for i in range(100 - p):
+        gran1, granulated_image1 = granulation.spatio_color_granules(frames_rgb[i], 50)
+        np.savetxt(f"saved_data/granule{i}_1.csv", gran1, delimiter=",")
+        plt.imsave(f'saved_data/spatio_color_granules{i}.jpg', granulated_image1)
+
         # print(gran1)
         gran2, granulated_image2 = granulation.spatio_temporal_granules(frames_rgb[i],
                                                                         frames_rgb[i:i+p], 50)
+        np.savetxt(f"saved_data/granule{i}_2.csv", gran2, delimiter=",")
+        plt.imsave(f'saved_data/spatio_temporal_granules{i}.jpg', granulated_image2)
         # print(granulated_image2)
         # print(len(gran2))
 
-        granulated_image3 = granulation.color_neighborhood_granules(gran2, granulated_image2, frames_depth[i], 70)
+        granulated_image3 = granulation.color_neighborhood_granules(gran2, granulated_image2,
+                                                                    frames_depth[i], 70)
+        plt.imsave(f'saved_data/color_neighborhood_granules{i}.jpg', granulated_image3)
         # cv2.imshow("granulated image1", granulated_image1)
-        cv2.imshow("granulated image2", granulated_image2)
-        cv2.imshow("granulated image3", granulated_image3)
-        cv2.waitKey(1)
+        # cv2.imshow("granulated image2", granulated_image2)
+        # cv2.imshow("granulated image3", granulated_image3)
+        # cv2.waitKey(1)
 
     # plt.imsave('spatio_color_granules.jpg', granulated_image1)
     # plt.imsave('spatio_temporal_granules.jpg', granulated_image2)
