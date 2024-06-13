@@ -46,10 +46,10 @@ if __name__ == '__main__':
     
     i = 0 # init
     start = time.time()
-    spatio_color_gran, granulated_image1 = granulation.spatio_color_granules(frames_rgb[i], 50)
-    np.savetxt(f"saved_data/granule{i}_sp_clr.csv", spatio_color_gran, delimiter=",")
-    plt.imsave(f'saved_data/spatio_color_granules{i}.jpg', granulated_image1, cmap='hot')
-    print("Spatio color granules: done")
+    # spatio_color_gran, granulated_image1 = granulation.spatio_color_granules(frames_rgb[i], 50)
+    # np.savetxt(f"saved_data/granule{i}_sp_clr.csv", spatio_color_gran, delimiter=",")
+    # plt.imsave(f'saved_data/spatio_color_granules{i}.jpg', granulated_image1, cmap='hot')
+    # print("Spatio color granules: done")
 
     sp_tmp_info, sp_tmp_granules = granulation.spatio_temporal_granules(frames_rgb[i], frames_rgb[i+1: i+P], 50)
     np.savetxt(f"saved_data/granule{i}_sp_tmp.csv", sp_tmp_info, delimiter=",")
