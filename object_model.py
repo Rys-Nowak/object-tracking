@@ -5,7 +5,6 @@ import cv2
 def create_initial_object_model(current_frame, previous_frames, thresh=20):
     diffs = np.array([cv2.absdiff(current_frame, frame)
                      for frame in previous_frames])
-    print(len(diffs))
     diffs = np.where(np.abs(diffs) > thresh, diffs, np.zeros(diffs.shape))
     diffs = diffs.astype(bool)*1
 

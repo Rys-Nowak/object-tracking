@@ -125,13 +125,14 @@ def spatio_temporal_granules(current_frame: np.ndarray,
 	return granules_list, granulated_image_uint8
 
 
-def color_neighborhood_granules(granules: list,
-                                image: np.ndarray, image_depth: np.ndarray, threshold: int) -> np.ndarray:
+def color_granules(granules: list, image: np.ndarray, image_depth: np.ndarray, threshold: int) -> np.ndarray:
 	region_label = 1
 	granulated_image = np.zeros(image.shape[:2])
 	image = image[:, :, np.newaxis]
 	image_rgb_d = np.dstack([image, image_depth])
+	print("Calculating color granules, total length:", len(granules))
 	for i in range(len(granules)):
+		print("\tAnalysing granule no:", i)
 		ys, xs = np.where(np.all(image == i, axis=2))
 		if ys.any() and xs.any():
 			first_point = image_rgb_d[ys[0], xs[0]]
