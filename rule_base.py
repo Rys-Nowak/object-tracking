@@ -1,9 +1,3 @@
-# To przerobić. Jak nie działa, to znaczy że inna koncepcja, wtedy:
-#   1. Lecimy po pikselach, ale patrzymy ich granule
-#   2. Jak dalej nie działa, to liczymy granule na dolnym oszacowaniu obiektu, a nie na obrazie
-#      - tu trochę problem ze spatio temporal i spatio color (O_ rgb lub rgb-d, muszę sam sprawdzić)
-#        i jeszcze sp-tmp to więcej klatek biorą przecież i powinny być 3D - muszę kurde sam poczytać
-
 import numpy as np
 from enum import IntEnum
 
@@ -22,57 +16,50 @@ class Attribute(IntEnum):
     CC = 4  # contained in
 
 
-def belongs(granule, intersection):
-    return np.sum(intersection) == np.sum(granule)
+def belongs(feature_granule, intersection):
+    return np.sum(intersection) == np.sum(feature_granule)
 
 
-def partially_belongs(granule, object_model, intersection):
-    return min(np.sum(object_model), np.sum(granule)) > np.sum(intersection) > 0
+def partially_belongs(feature_granule, sp_clr_granule, intersection):
+    return min(np.sum(sp_clr_granule), np.sum(feature_granule)) > np.sum(intersection) > 0
 
 
 def does_not_belong(intersection):
     return np.sum(intersection) == 0
 
 
-def contained_in(object_model, intersection):
-    return np.sum(intersection) == np.sum(object_model)
+def contained_in(sp_clr_granule, intersection):
+    return np.sum(intersection) == np.sum(sp_clr_granule)
 
 
-def get_attribute(granule, object_model, intersection):
-    if belongs(granule, intersection):
+def get_attribute(feature_granule, sp_clr_granule, intersection):
+    if belongs(feature_granule, intersection):
         return Attribute.BE
-    elif partially_belongs(granule, object_model, intersection):
+    elif partially_belongs(feature_granule, sp_clr_granule, intersection):
         return Attribute.PB
     elif does_not_belong(intersection):
         return Attribute.NB
-    elif contained_in(object_model, intersection):
+    elif contained_in(sp_clr_granule, intersection):
         return Attribute.CC
 
 
-def calc_attribute(sp_tmp_granules, object_model, i, j):
+def calc_attribute(sp_tmp_granules, sp_clr_granule, i, j):
     label = sp_tmp_granules[i, j]
     current_granule = sp_tmp_granules == label
-    intersection = np.logical_and(current_granule, object_model)
-    return get_attribute(current_granule, object_model, intersection)
+    intersection = np.logical_and(current_granule, sp_clr_granule)
+    return get_attribute(current_granule, sp_clr_granule, intersection)
 
 
 # Iterating over all pixels, for each checking corresponding sp-tmp, RGB and D granules
-# According to their relation (Arttribute) with the object model (RGB-D bottom object estimation), the decision is taken
-def generate_rule_base(object_model, sp_clr_granules, sp_tmp_granules, rgb_granules, d_granules, verbose=True):
+# According to their relation (Arttribute) with the sp-clr granules, the decision is taken
+def generate_rule_base(sp_clr_granules, sp_tmp_granules, rgb_granules, d_granules, verbose=True):
     if verbose:
         print("Generating rule base...")
 
-    # Idk if i should treat d and rgb values separate, nor should i use any or all
-    # object_model_rgb = np.all(object_model[..., :3], axis=2)
-    # object_model_d = object_model[..., 3] > 0
-
-    if verbose:
-        print("\tCalculating attributes...")
-
-    img_height, img_width = object_model.shape[:2]
-    result_sp_tmp = np.zeros(object_model.shape[:2], Attribute)
-    result_rgb = np.zeros(object_model.shape[:2], Attribute)
-    result_d = np.zeros(object_model.shape[:2], Attribute)
+    img_height, img_width = sp_clr_granules.shape[:2]
+    result_sp_tmp = np.zeros(sp_clr_granules.shape[:2], Attribute)
+    result_rgb = np.zeros(sp_clr_granules.shape[:2], Attribute)
+    result_d = np.zeros(sp_clr_granules.shape[:2], Attribute)
     for i in range(img_height):
         if verbose:
             print("\t\tAnalysing row no:", i)
@@ -102,7 +89,7 @@ def generate_rule_base(object_model, sp_clr_granules, sp_tmp_granules, rgb_granu
         np.logical_and.reduce((result_sp_tmp == Attribute.NB, result_rgb == Attribute.NB, result_d == Attribute.BE)),
         np.logical_and.reduce((result_sp_tmp == Attribute.BE, result_rgb == Attribute.NB, result_d == Attribute.NB)),
     ))
-    result = np.zeros(object_model.shape[:-1], Decision)
+    result = np.zeros(sp_clr_granules.shape[:2], Decision)
     result[result_object] = Decision.OBJECT
     result[result_background] = Decision.BACKGROUND
     if verbose:

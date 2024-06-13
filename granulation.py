@@ -63,7 +63,9 @@ def spatio_color_granules(image: np.ndarray, Thr: int) -> Tuple[list, np.ndarray
 	region_label = 1
 	granules_list = []
 
+	print("Calculating spatio-color granules, image height:", height)
 	for y in range(height):
+		print("\tAnalysing row no:", y)
 		for x in range(width):
 			if granulated_image[y, x] == 0:
 				new_region = region_growing_color(image, x, y, Thr)

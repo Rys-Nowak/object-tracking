@@ -6,6 +6,8 @@ import cv2
 import time
 import object_model
 import rule_base
+import pickle
+
 
 if __name__ == '__main__':
     path = 'data/mensa_seq0_1.1'
@@ -46,27 +48,54 @@ if __name__ == '__main__':
     
     i = 0 # init
     start = time.time()
-    # spatio_color_gran, granulated_image1 = granulation.spatio_color_granules(frames_rgb[i], 50)
-    # np.savetxt(f"saved_data/granule{i}_sp_clr.csv", spatio_color_gran, delimiter=",")
-    # plt.imsave(f'saved_data/spatio_color_granules{i}.jpg', granulated_image1, cmap='hot')
-    # print("Spatio color granules: done")
+    sp_clr_info = None
+    sp_clr_granules = None
+    try:
+        with open(f"saved_data/sp_clr_info{i}.pkl", "rb") as f_info_r_1:
+            sp_clr_info = pickle.load(f_info_r_1)
+        with open(f'saved_data/sp_clr_granules{i}.pkl', "rb") as f_im_r_1:
+            sp_clr_granules = pickle.load(f_im_r_1)
+    except:
+        sp_clr_info, sp_clr_granules = granulation.spatio_color_granules(frames_rgb[i], 50)
+        plt.imsave(f'saved_data/spatio_color_granules{i}.jpg', sp_clr_granules, cmap='hot')
+        with open(f"saved_data/sp_clr_info{i}.pkl", "wb") as f_info_w_1:
+            pickle.dump(sp_clr_info, f_info_w_1)
+        with open(f'saved_data/sp_clr_granules{i}.pkl', "wb") as f_im_w_1:
+            pickle.dump(sp_clr_granules, f_im_w_1)
 
-    sp_tmp_info, sp_tmp_granules = granulation.spatio_temporal_granules(frames_rgb[i], frames_rgb[i+1: i+P], 50)
-    np.savetxt(f"saved_data/granule{i}_sp_tmp.csv", sp_tmp_info, delimiter=",")
-    plt.imsave(f'saved_data/spatio_temporal_granules{i}.jpg', sp_tmp_granules, cmap="hot")
+    print("Spatio color granules: done")
+
+    sp_tmp_info = None
+    sp_tmp_granules = None
+    try:
+        with open(f"saved_data/sp_tmp_info{i}.pkl", "rb") as f_info_r_2:
+            sp_tmp_info = pickle.load(f_info_r_2)
+        with open(f'saved_data/sp_tmp_granules{i}.pkl', "rb") as f_im_r_2:
+            sp_tmp_granules = pickle.load(f_im_r_2)
+    except:
+        sp_tmp_info, sp_tmp_granules = granulation.spatio_temporal_granules(frames_rgb[i], frames_rgb[i+1: i+P], 50)
+        plt.imsave(f'saved_data/spatio_temporal_granules{i}.jpg', sp_tmp_granules, cmap="hot")
+        with open(f"saved_data/sp_tmp_info{i}.pkl", "wb") as f_info_w_2:
+            pickle.dump(sp_tmp_info, f_info_w_2)
+        with open(f'saved_data/sp_tmp_granules{i}.pkl', "wb") as f_im_w_2:
+            pickle.dump(sp_tmp_granules, f_im_w_2)
+
     print("Spatio temporal granules: done")
 
-    depth_granules = granulation.color_granules(sp_tmp_info, sp_tmp_granules, frames_depth[i], 70)
-    plt.imsave(f'saved_data/depth_granules{i}.jpg', depth_granules, cmap="hot")
+    depth_granules = None
+    try:
+        with open(f"saved_data/depth_granules{i}.pkl", "rb") as f_im_r_3:
+            depth_granules = pickle.load(f_im_r_3)
+    except:
+        depth_granules = granulation.color_granules(sp_tmp_info, sp_tmp_granules, frames_depth[i], 70)
+        plt.imsave(f'saved_data/depth_granules{i}.jpg', depth_granules, cmap="hot")
+        with open(f"saved_data/depth_granules{i}.pkl", "wb") as f_im_w_3:
+            pickle.dump(depth_granules, f_im_w_3)
+
     print("Depth granules: done")
-
-    # rgb_granules = granulation.color_granules(sp_tmp_info, sp_tmp_granules, frames_rgb[i], 70)
-    # plt.imsave(f'saved_data/RGB_granules{i}.jpg', rgb_granules, cmap="hot")
-    # print("RGB granules: done")
-
     print("Elapsed time granules:", time.time()-start)
 
     start = time.time()
-    rule_base = rule_base.generate_rule_base(model_bottom, sp_tmp_granules, sp_tmp_granules, depth_granules, verbose=False)
+    rule_base = rule_base.generate_rule_base(sp_clr_granules, sp_tmp_granules, sp_tmp_granules, depth_granules, verbose=True)
     print("Elapsed time rule_base:", time.time()-start)
-    plt.imsave("rule_base.jpg", rule_base, cmap='hot')
+    plt.imsave(f"saved_data/rule_base{i}.jpg", rule_base, cmap='hot')
