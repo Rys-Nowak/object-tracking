@@ -90,6 +90,10 @@ def spatio_temporal_granules(current_frame: np.ndarray,
 	granulated_image = np.zeros((height, width), dtype=np.int32)
 
 	diffs_first2all = np.array([cv2.absdiff(current_frame, frame) for frame in previous_frames])
+
+	median_diff = np.median(diffs_first2all, axis=0)
+	threshold = 0.2 * np.max(median_diff)
+
 	diffs_frame2frame = np.array(
 		[cv2.absdiff(frame1, frame2) for frame1, frame2 in zip(previous_frames, previous_frames[1:])])
 

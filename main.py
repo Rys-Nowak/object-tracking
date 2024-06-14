@@ -56,7 +56,7 @@ if __name__ == '__main__':
         with open(f'saved_data/sp_clr_granules{i}.pkl', "rb") as f_im_r_1:
             sp_clr_granules = pickle.load(f_im_r_1)
     except:
-        sp_clr_info, sp_clr_granules = granulation.spatio_color_granules(frames_rgb[i], 50)
+        sp_clr_info, sp_clr_granules = granulation.spatio_color_granules(frames_rgb[i], 20)
         plt.imsave(f'saved_data/spatio_color_granules{i}.jpg', sp_clr_granules, cmap='hot')
         with open(f"saved_data/sp_clr_info{i}.pkl", "wb") as f_info_w_1:
             pickle.dump(sp_clr_info, f_info_w_1)
